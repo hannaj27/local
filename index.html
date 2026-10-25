@@ -1,244 +1,340 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Local Synthetic Speech</title>
 <style>
-:root{color-scheme:dark;--bg:#111318;--panel:#1b1f27;--line:#343b48;--text:#f1f3f7;--muted:#aab2c0;--accent:#77e4d2}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-main{max-width:760px;margin:auto;padding:22px 16px 40px}
-h1{font-size:1.55rem;margin:0 0 8px}
-p{color:var(--muted);margin:8px 0 16px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
-label{display:block;font-weight:600;margin:12px 0 6px}
-input,select,button{font:inherit}
-input[type=file],select{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#11151b;color:var(--text)}
-input[type=range]{width:100%;accent-color:var(--accent)}
-button{width:100%;border:0;border-radius:10px;padding:14px 16px;font-weight:700;background:var(--accent);color:#101817;margin-top:14px;min-height:48px}
-button:disabled{opacity:.45}
-.small{font-size:.9rem}
-#status{white-space:pre-wrap;color:var(--accent);min-height:1.4em;margin-top:12px}
-audio{width:100%;margin-top:12px}
-.row{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.9rem}
-a{color:var(--accent);font-weight:600;display:inline-block;margin-top:12px}
-.note{font-size:.9rem;border-left:3px solid var(--accent);padding-left:12px}
+:root {
+  color-scheme: dark;
+  --bg: #111318;
+  --panel: #1b1f27;
+  --line: #343b48;
+  --text: #f1f3f7;
+  --muted: #aab2c0;
+  --accent: #77e4d2;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 -apple-system, BlinkMacSystemFont, sans-serif;
+}
+main { max-width: 760px; margin: auto; padding: 22px 16px 40px; }
+h1 { font-size: 1.55rem; margin: 0 0 8px; }
+p { color: var(--muted); }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin: 14px 0;
+}
+label { display: block; font-weight: 600; margin: 16px 0 6px; }
+input, select, button { font: inherit; }
+input[type=file], select {
+  width: 100%; padding: 12px; border: 1px solid var(--line);
+  border-radius: 9px; background: #11151b; color: var(--text);
+}
+input[type=range] { width: 100%; accent-color: var(--accent); }
+button {
+  width: 100%; border: 0; border-radius: 10px; padding: 14px;
+  font-weight: 700; background: var(--accent); color: #101817;
+  margin-top: 18px; min-height: 48px;
+}
+button:disabled { opacity: .45; }
+.small { font-size: .9rem; color: var(--muted); }
+.row { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: .8rem; }
+#status { white-space: pre-wrap; color: var(--accent); min-height: 1.4em; margin-top: 12px; }
+audio { width: 100%; margin-top: 12px; }
+a { color: var(--accent); font-weight: 600; display: inline-block; margin-top: 12px; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Local Synthetic Speech</h1>
-  <p>Turn a voice recording into a synthetic tone that follows the speaker’s changing pitch and speech rhythm. Audio is processed in this page on your device; it is not uploaded.</p>
+<h1>Local Synthetic Speech</h1>
+<p>Convert a voice recording into synthetic tones that follow its pitch and rhythm. Audio is processed on your device and is not uploaded.</p>
 
-  <section class="panel">
-    <label for="file">1. Choose an audio recording</label>
-    <input id="file" type="file" accept="audio/*,.m4a,.mp3,.wav,.aac">
-    <div id="fileInfo" class="small"></div>
+<section class="panel">
+<label for="file">1. Choose an audio recording</label>
+<input id="file" type="file" accept="audio/*,.m4a,.mp3,.wav,.aac">
+<div id="fileInfo" class="small"></div>
 
-    <label for="tone">Tone shape</label>
-    <select id="tone">
-      <option value="square">Square wave: buzzy, game-like</option>
-      <option value="sawtooth">Sawtooth: harsh, nasal</option>
-      <option value="sine">Sine wave: clean, soft</option>
-      <option value="triangle">Triangle: rounded, hollow</option>
-    </select>
+<label for="tone">Tone shape</label>
+<select id="tone">
+  <option value="square">Square: buzzy, game-like</option>
+  <option value="sawtooth">Sawtooth: harsh, nasal</option>
+  <option value="sine">Sine: clean, soft</option>
+  <option value="triangle">Triangle: rounded, hollow</option>
+</select>
 
-    <label for="pitch">Pitch shift <span id="pitchVal">0 semitones</span></label>
-    <input id="pitch" type="range" min="-12" max="12" value="0" step="1">
-    <div class="row"><span>Lower</span><span>Keep original pitch</span><span>Higher</span></div>
+<label>Pitch shift: <span id="pitchVal">0 semitones</span></label>
+<input id="pitch" type="range" min="-12" max="12" value="0" step="1">
+<div class="row"><span>Lower</span><span>Original</span><span>Higher</span></div>
 
-    <label for="strength">Tone level <span id="strengthVal">75%</span></label>
-    <input id="strength" type="range" min="20" max="100" value="75" step="5">
+<label>Tone level: <span id="strengthVal">75%</span></label>
+<input id="strength" type="range" min="20" max="100" value="75" step="5">
 
-    <label for="smooth">Pitch smoothing <span id="smoothVal">Medium</span></label>
-    <input id="smooth" type="range" min="0" max="4" value="2" step="1">
-    <div class="row"><span>More detail</span><span>Less jitter</span></div>
+<label>Pitch smoothing: <span id="smoothVal">Medium</span></label>
+<input id="smooth" type="range" min="0" max="4" value="2" step="1">
+<div class="row"><span>Detailed</span><span>Smoother</span></div>
 
-    <button id="process" disabled>Generate synthetic audio</button>
-    <div id="status" role="status">Choose a recording to begin.</div>
-  </section>
+<label>Pitch variation: <span id="variationVal">1.0×</span></label>
+<input id="variation" type="range" min="0.5" max="2.5" value="1" step="0.1">
+<div class="row"><span>Flatter</span><span>More expressive</span></div>
 
-  <section class="panel">
-    <strong>2. Listen and export</strong>
-    <audio id="preview" controls></audio>
-    <a id="download" hidden download="synthetic-speech.wav">Save synthetic-speech.wav</a>
-    <p class="note">This first version detects voiced pitch and uses the recording’s loudness to preserve syllable timing. Unvoiced sounds such as “s”, “f”, and “t” have no stable vocal pitch, so they may become quiet gaps. Results depend on the recording and the browser’s audio decoder.</p>
-  </section>
+<label>Lowest tone: <span id="lowPitchVal">90 Hz</span></label>
+<input id="lowPitch" type="range" min="60" max="250" value="90" step="5">
+
+<label>Highest tone: <span id="highPitchVal">400 Hz</span></label>
+<input id="highPitch" type="range" min="180" max="800" value="400" step="10">
+
+<label>Voice sensitivity: <span id="gateVal">Medium</span></label>
+<input id="gate" type="range" min="1" max="10" value="4" step="1">
+<div class="row"><span>Ignore quiet sounds</span><span>Catch quiet sounds</span></div>
+
+<button id="process" disabled>Generate synthetic audio</button>
+<div id="status">Choose a recording to begin.</div>
+</section>
+
+<section class="panel">
+<strong>2. Listen and export</strong>
+<audio id="preview" controls></audio><br>
+<a id="download" hidden download="synthetic-speech.wav">Save synthetic-speech.wav</a>
+<p class="small">Unvoiced sounds such as S, F, and T may become silent because they lack a stable vocal pitch.</p>
+</section>
 </main>
+
 <script>
 (() => {
-  const $ = id => document.getElementById(id);
-  const fileInput=$('file'), processBtn=$('process'), status=$('status');
-  let audioBuffer=null, outputUrl=null;
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+const $ = id => document.getElementById(id);
+const fileInput = $('file');
+const processBtn = $('process');
+const status = $('status');
+let audioBuffer = null;
+let outputUrl = null;
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-  $('pitch').addEventListener('input',()=> $('pitchVal').textContent = `${$('pitch').value} semitones`);
-  $('strength').addEventListener('input',()=> $('strengthVal').textContent = `${$('strength').value}%`);
-  $('smooth').addEventListener('input',()=> $('smoothVal').textContent = ['Off','Light','Medium','Strong','Very strong'][+$('smooth').value]);
+$('pitch').oninput = () => $('pitchVal').textContent = `${$('pitch').value} semitones`;
+$('strength').oninput = () => $('strengthVal').textContent = `${$('strength').value}%`;
+$('smooth').oninput = () => $('smoothVal').textContent = ['Off','Light','Medium','Strong','Very strong'][+$('smooth').value];
+$('variation').oninput = () => $('variationVal').textContent = `${(+ $('variation').value).toFixed(1)}×`;
 
-  fileInput.addEventListener('change', async () => {
-    audioBuffer=null; processBtn.disabled=true;
-    $('preview').removeAttribute('src'); $('download').hidden=true;
-    if(outputUrl){URL.revokeObjectURL(outputUrl);outputUrl=null;}
-    const file=fileInput.files && fileInput.files[0];
-    if(!file) return;
-    $('fileInfo').textContent=`${file.name} · ${(file.size/1024/1024).toFixed(1)} MB`;
-    status.textContent='Loading audio locally…';
-    try{
-      const bytes=await file.arrayBuffer();
-      audioBuffer=await ctx.decodeAudioData(bytes);
-      processBtn.disabled=false;
-      status.textContent=`Loaded ${(audioBuffer.duration).toFixed(1)} seconds. Ready to process.`;
-    }catch(e){
-      status.textContent='Could not decode this file in this browser. Try exporting it as WAV, MP3, or M4A and selecting it again.';
-    }
-  });
+function updateRangeLabels() {
+  $('lowPitchVal').textContent = `${$('lowPitch').value} Hz`;
+  $('highPitchVal').textContent = `${$('highPitch').value} Hz`;
+}
+$('lowPitch').oninput = () => {
+  if (+$('lowPitch').value >= +$('highPitch').value)
+    $('highPitch').value = +$('lowPitch').value + 10;
+  updateRangeLabels();
+};
+$('highPitch').oninput = () => {
+  if (+$('highPitch').value <= +$('lowPitch').value)
+    $('lowPitch').value = +$('highPitch').value - 10;
+  updateRangeLabels();
+};
+$('gate').oninput = () => {
+  $('gateVal').textContent = ['Very sensitive','Very sensitive','Sensitive','Medium','Medium','Medium','Less sensitive','Less sensitive','Strict','Very strict'][+$('gate').value-1];
+};
 
-  function monoData(buffer){
-    const n=buffer.length, out=new Float32Array(n);
-    const channels=buffer.numberOfChannels;
-    for(let c=0;c<channels;c++){
-      const d=buffer.getChannelData(c);
-      for(let i=0;i<n;i++) out[i]+=d[i]/channels;
-    }
-    return out;
+fileInput.onchange = async () => {
+  audioBuffer = null;
+  processBtn.disabled = true;
+  $('preview').removeAttribute('src');
+  $('download').hidden = true;
+  if (outputUrl) { URL.revokeObjectURL(outputUrl); outputUrl = null; }
+
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) return;
+  $('fileInfo').textContent = `${file.name} · ${(file.size/1048576).toFixed(1)} MB`;
+  status.textContent = 'Loading audio locally…';
+
+  try {
+    audioBuffer = await ctx.decodeAudioData(await file.arrayBuffer());
+    processBtn.disabled = false;
+    status.textContent = `Loaded ${audioBuffer.duration.toFixed(1)} seconds. Ready.`;
+  } catch (e) {
+    status.textContent = 'Could not decode this audio. Try a WAV or MP3 file.';
   }
+};
 
-  function detectPitch(frame, sampleRate){
-    // Remove DC and estimate pitch using normalized autocorrelation.
-    let mean=0; for(let i=0;i<frame.length;i++) mean+=frame[i]; mean/=frame.length;
-    let energy=0; for(let i=0;i<frame.length;i++){const v=frame[i]-mean;energy+=v*v;}
-    if(energy/frame.length < 0.000012) return 0;
-    const minLag=Math.floor(sampleRate/400), maxLag=Math.min(Math.floor(sampleRate/65),frame.length-2);
-    let bestLag=0,best=-1;
-    for(let lag=minLag;lag<=maxLag;lag++){
-      let corr=0,e1=0,e2=0;
-      for(let i=0;i<frame.length-lag;i++){
-        const a=frame[i]-mean,b=frame[i+lag]-mean;
-        corr+=a*b;e1+=a*a;e2+=b*b;
-      }
-      const norm=corr/Math.sqrt((e1*e2)||1);
-      if(norm>best){best=norm;bestLag=lag;}
-    }
-    if(best<0.62||!bestLag) return 0;
-    // Parabolic interpolation around the peak improves frequency resolution.
-    const corrAt=lag=>{
-      let c=0,e1=0,e2=0;
-      for(let i=0;i<frame.length-lag;i++){const a=frame[i]-mean,b=frame[i+lag]-mean;c+=a*b;e1+=a*a;e2+=b*b;}
-      return c/Math.sqrt((e1*e2)||1);
-    };
-    const y1=bestLag>minLag?corrAt(bestLag-1):best;
-    const y2=best, y3=bestLag<maxLag?corrAt(bestLag+1):best;
-    const denom=y1-2*y2+y3;
-    const offset=Math.abs(denom)>1e-8?0.5*(y1-y3)/denom:0;
-    return sampleRate/(bestLag+Math.max(-1,Math.min(1,offset)));
+function monoData(buffer) {
+  const n = buffer.length;
+  const out = new Float32Array(n);
+  for (let c = 0; c < buffer.numberOfChannels; c++) {
+    const d = buffer.getChannelData(c);
+    for (let i = 0; i < n; i++) out[i] += d[i] / buffer.numberOfChannels;
   }
+  return out;
+}
 
-  function writeWav(samples,sampleRate){
-    const buffer=new ArrayBuffer(44+samples.length*2), view=new DataView(buffer);
-    const write=(o,s)=>{for(let i=0;i<s.length;i++)view.setUint8(o+i,s.charCodeAt(i));};
-    write(0,'RIFF'); view.setUint32(4,36+samples.length*2,true); write(8,'WAVE');
-    write(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);
-    view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);
-    write(36,'data');view.setUint32(40,samples.length*2,true);
-    for(let i=0;i<samples.length;i++){
-      const s=Math.max(-1,Math.min(1,samples[i]));
-      view.setInt16(44+i*2,s<0?s*32768:s*32767,true);
+function detectPitch(frame, sampleRate) {
+  let mean = 0;
+  for (let i = 0; i < frame.length; i++) mean += frame[i];
+  mean /= frame.length;
+
+  let energy = 0;
+  for (let i = 0; i < frame.length; i++) energy += (frame[i]-mean)**2;
+  if (energy/frame.length < 0.000012) return 0;
+
+  const minLag = Math.floor(sampleRate/400);
+  const maxLag = Math.min(Math.floor(sampleRate/65), frame.length-2);
+  let bestLag = 0, best = -1;
+
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    let corr = 0, e1 = 0, e2 = 0;
+    for (let i = 0; i < frame.length-lag; i++) {
+      const a = frame[i]-mean, b = frame[i+lag]-mean;
+      corr += a*b; e1 += a*a; e2 += b*b;
     }
-    return new Blob([buffer],{type:'audio/wav'});
+    const norm = corr/Math.sqrt((e1*e2)||1);
+    if (norm > best) { best = norm; bestLag = lag; }
   }
+  if (best < 0.62 || !bestLag) return 0;
+  return sampleRate/bestLag;
+}
 
-  processBtn.addEventListener('click', async () => {
-    if(!audioBuffer) return;
-    processBtn.disabled=true;
-    try{
-      await ctx.resume();
-      status.textContent='Analyzing pitch… keep this page open.';
-      await new Promise(r=>setTimeout(r,30));
-      const sr=audioBuffer.sampleRate, input=monoData(audioBuffer);
-      const hop=Math.max(128,Math.round(sr*0.01)); // 10 ms pitch/control updates
-      const frameSize=Math.max(1024,Math.round(sr*0.04)); // 40 ms analysis frame
-      const half=Math.floor(frameSize/2);
-      const count=Math.ceil(input.length/hop);
-      const f0=new Float32Array(count), rms=new Float32Array(count);
-      const frame=new Float32Array(frameSize);
-      for(let k=0;k<count;k++){
-        const center=k*hop, start=center-half;
-        let sum=0;
-        for(let j=0;j<frameSize;j++){
-          const idx=start+j, v=(idx>=0&&idx<input.length)?input[idx]:0;
-          // Hann window for pitch analysis
-          const win=0.5-0.5*Math.cos(2*Math.PI*j/(frameSize-1));
-          frame[j]=v*win; sum+=v*v;
-        }
-        rms[k]=Math.sqrt(sum/frameSize);
-        f0[k]=detectPitch(frame,sr);
-        if(k%500===0) await new Promise(r=>setTimeout(r,0));
+function writeWav(samples, sampleRate) {
+  const buffer = new ArrayBuffer(44 + samples.length*2);
+  const view = new DataView(buffer);
+  const write = (offset, str) => {
+    for (let i=0; i<str.length; i++) view.setUint8(offset+i,str.charCodeAt(i));
+  };
+  write(0,'RIFF'); view.setUint32(4,36+samples.length*2,true);
+  write(8,'WAVE'); write(12,'fmt ');
+  view.setUint32(16,16,true); view.setUint16(20,1,true);
+  view.setUint16(22,1,true); view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*2,true); view.setUint16(32,2,true);
+  view.setUint16(34,16,true); write(36,'data');
+  view.setUint32(40,samples.length*2,true);
+
+  for (let i=0; i<samples.length; i++) {
+    const s = Math.max(-1,Math.min(1,samples[i]));
+    view.setInt16(44+i*2,s<0?s*32768:s*32767,true);
+  }
+  return new Blob([buffer],{type:'audio/wav'});
+}
+
+processBtn.onclick = async () => {
+  if (!audioBuffer) return;
+  processBtn.disabled = true;
+
+  try {
+    await ctx.resume();
+    status.textContent = 'Analyzing pitch… keep this page open.';
+    await new Promise(r => setTimeout(r,30));
+
+    const sr = audioBuffer.sampleRate;
+    const input = monoData(audioBuffer);
+    const hop = Math.max(128,Math.round(sr*0.01));
+    const frameSize = Math.max(1024,Math.round(sr*0.04));
+    const half = Math.floor(frameSize/2);
+    const count = Math.ceil(input.length/hop);
+    const f0 = new Float32Array(count);
+    const rms = new Float32Array(count);
+    const frame = new Float32Array(frameSize);
+
+    for (let k=0; k<count; k++) {
+      const start = k*hop-half;
+      let sum = 0;
+      for (let j=0; j<frameSize; j++) {
+        const idx = start+j;
+        const v = idx>=0 && idx<input.length ? input[idx] : 0;
+        const win = 0.5-0.5*Math.cos(2*Math.PI*j/(frameSize-1));
+        frame[j] = v*win;
+        sum += v*v;
       }
-      // Fill short gaps and smooth the pitch contour.
-      const smooth=+$('smooth').value;
-      const radius=[0,1,2,3,5][smooth];
-      if(radius>0){
-        const raw=f0.slice();
-        for(let i=0;i<count;i++){
-          if(!raw[i]) continue;
-          let vals=[];
-          for(let j=Math.max(0,i-radius);j<=Math.min(count-1,i+radius);j++) if(raw[j]>0) vals.push(raw[j]);
-          if(vals.length) {vals.sort((a,b)=>a-b);f0[i]=vals[Math.floor(vals.length/2)];}
+      rms[k] = Math.sqrt(sum/frameSize);
+      f0[k] = detectPitch(frame,sr);
+      if (k%300===0) await new Promise(r => setTimeout(r,0));
+    }
+
+    const radius = [0,1,2,3,5][+$('smooth').value];
+    if (radius) {
+      const raw = f0.slice();
+      for (let i=0; i<count; i++) {
+        if (!raw[i]) continue;
+        const vals = [];
+        for (let j=Math.max(0,i-radius); j<=Math.min(count-1,i+radius); j++)
+          if (raw[j]>0) vals.push(raw[j]);
+        if (vals.length) {
+          vals.sort((a,b)=>a-b);
+          f0[i] = vals[Math.floor(vals.length/2)];
         }
       }
-      // Fill only tiny unvoiced gaps between two voiced frames.
-      for(let i=1;i<count-1;i++){
-        if(!f0[i]&&f0[i-1]&&f0[i+1]&&rms[i]>0.003){
-          f0[i]=(f0[i-1]+f0[i+1])/2;
-        }
+    }
+
+    status.textContent = 'Synthesizing tones…';
+    await new Promise(r => setTimeout(r,30));
+
+    const out = new Float32Array(input.length);
+    const shift = Math.pow(2,(+$('pitch').value)/12);
+    const level = +$('strength').value/100;
+    const wave = $('tone').value;
+    const variation = +$('variation').value;
+    const low = +$('lowPitch').value;
+    const high = +$('highPitch').value;
+
+    const voiced = [];
+    for (let i=0; i<f0.length; i++) if (f0[i]>0) voiced.push(f0[i]);
+    voiced.sort((a,b)=>a-b);
+    const center = voiced.length ? voiced[Math.floor(voiced.length/2)] : 150;
+
+    let peakRms = 0;
+    for (let i=0; i<rms.length; i++) peakRms = Math.max(peakRms,rms[i]);
+    peakRms = Math.max(peakRms,0.01);
+
+    const gate = +$('gate').value;
+    const threshold = Math.max(0.0008,peakRms*(0.015+(11-gate)*0.009));
+    let phase = 0;
+
+    for (let i=0; i<input.length; i++) {
+      const k = Math.min(count-1,Math.floor(i/hop));
+      let freq = f0[k];
+      const env = Math.min(1,Math.max(0,(rms[k]-threshold)/(peakRms*0.45+0.000001)));
+
+      if (freq>0 && rms[k]>threshold) {
+        freq = (center+(freq-center)*variation)*shift;
+        freq = Math.max(low,Math.min(high,freq));
+        phase += 2*Math.PI*freq/sr;
+        if (phase>2*Math.PI) phase %= 2*Math.PI;
+
+        let v;
+        if (wave==='sine') v = Math.sin(phase);
+        else if (wave==='triangle') v = 2/Math.PI*Math.asin(Math.sin(phase));
+        else if (wave==='sawtooth') v = 2*(phase/(2*Math.PI))-1;
+        else v = Math.sin(phase)>=0 ? 1 : -1;
+
+        out[i] = v*env*level*0.75;
+      } else {
+        out[i] = 0;
       }
-      status.textContent='Synthesizing tones…';
-      await new Promise(r=>setTimeout(r,30));
-      const out=new Float32Array(input.length);
-      const shift=Math.pow(2,(+$('pitch').value)/12);
-      const level=(+$('strength').value)/100;
-      const wave=$('tone').value;
-      let phase=0, lastF=0;
-      // Scale output to avoid extreme loudness differences between recordings.
-      const peakRms=Math.max(...Array.from(rms).filter(v=>v>0).slice(0,Math.min(count,20000)),0.01);
-      const threshold=Math.max(0.0025,peakRms*0.07);
-      for(let i=0;i<input.length;i++){
-        const k=Math.min(count-1,Math.floor(i/hop));
-        let freq=f0[k]*shift;
-        const env=Math.min(1,Math.max(0,(rms[k]-threshold)/(peakRms*0.45+1e-6)));
-        if(freq>0&&rms[k]>threshold){
-          // Gentle onset/release smoothing from the local envelope.
-          lastF=freq;
-          phase += 2*Math.PI*freq/sr;
-          if(phase>2*Math.PI) phase-=2*Math.PI*Math.floor(phase/(2*Math.PI));
-          let v=0;
-          if(wave==='sine') v=Math.sin(phase);
-          else if(wave==='triangle') v=2/Math.PI*Math.asin(Math.sin(phase));
-          else if(wave==='sawtooth') v=2*(phase/(2*Math.PI))-1;
-          else v=Math.sin(phase)>=0?1:-1;
-          out[i]=v*env*level*0.75;
-        }else{
-          // Keep phase moving smoothly through gaps, but output silence.
-          out[i]=0;
-        }
-        if(i%(sr*3)===0&&i>0) await new Promise(r=>setTimeout(r,0));
-      }
-      // Short fade at file edges to prevent clicks.
-      const fade=Math.min(Math.round(sr*0.01),Math.floor(out.length/2));
-      for(let i=0;i<fade;i++){const g=i/fade;out[i]*=g;out[out.length-1-i]*=g;}
-      const blob=writeWav(out,sr);
-      if(outputUrl) URL.revokeObjectURL(outputUrl);
-      outputUrl=URL.createObjectURL(blob);
-      $('preview').src=outputUrl;
-      $('download').href=outputUrl;$('download').hidden=false;
-      status.textContent='Done. Play the result, adjust settings, and generate again if needed.';
-    }catch(e){
-      console.error(e);
-      status.textContent='Processing failed. Try a shorter recording first. On iPhone, keep Safari open while it works.';
-    }finally{processBtn.disabled=false;}
-  });
+      if (i>0 && i%(sr*3)===0) await new Promise(r=>setTimeout(r,0));
+    }
+
+    const fade = Math.min(Math.round(sr*0.01),Math.floor(out.length/2));
+    for (let i=0; i<fade; i++) {
+      const g = i/fade;
+      out[i] *= g;
+      out[out.length-1-i] *= g;
+    }
+
+    const blob = writeWav(out,sr);
+    if (outputUrl) URL.revokeObjectURL(outputUrl);
+    outputUrl = URL.createObjectURL(blob);
+    $('preview').src = outputUrl;
+    $('download').href = outputUrl;
+    $('download').hidden = false;
+    status.textContent = 'Done. Listen, adjust settings, and generate again.';
+  } catch (e) {
+    console.error(e);
+    status.textContent = 'Processing failed. Try a shorter recording and keep this page open.';
+  } finally {
+    processBtn.disabled = false;
+  }
+};
 })();
 </script>
 </body>
