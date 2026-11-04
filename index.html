@@ -349,7 +349,6 @@ console.error(e);
 $('status').textContent=
 'Processing failed. Details: '+(e&&e.message?e.message:String(e));
 }finally{
-if(ff){try{ff.exit();}catch(e){}}
 btn.disabled=!videoFile;
 }
 };
